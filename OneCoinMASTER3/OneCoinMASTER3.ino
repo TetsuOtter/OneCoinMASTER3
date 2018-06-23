@@ -1,7 +1,9 @@
-//One Coin M@STER version 2.0.1
+//One Coin M@STER version 3.0.0
 //Tech Otter(https://technotter.com)
 //Tetsu Otter(https://twitter.com/tetsu_otter)
-const int rever = A2; //"A1"にレバーサー可変抵抗を接続したピンを入力してください。
+//ver3での変更点=>若干高速化(?)/TSマスコン互換モード搭載
+//#include "arduino.h"
+const int rever = A1; //"A1"にレバーサー可変抵抗を接続したピンを入力してください。
 const int mascon = A2; //"A2"にノッチ可変抵抗を接続したピンを入力してください。1ハンドルの場合は下と同じピンを指定してください。
 const int brakevr = A2;//"A2"にブレーキ可変抵抗を接続したピンを入力してください。1ハンドルの場合は上と同じピンを指定してください。
 const float levN = 500; //"500"のところに中立位置の時のレバーサー可変抵抗の出力値を入力してください。
@@ -13,9 +15,11 @@ const int btnum = 2;//ボタンの数を入力してください。最大値は2
 const int brake[brnum] = {600, 650, 700, 750, 800, 850, 900, 950, 1000}; //{}内に各段における出力値を "N(B0)の位置から順に" 整数で入力してください。
 const int notch[nonum] = {550, 500, 400, 300, 200, 100}; //{}内に各段における出力値を "N(P0)の位置から順に" 整数で入力してください。
 const int button[btnum] = {2, 3}; //{}内にボタンを接続したピンの番号を入力してください。左からボタン1,ボタン2...となります。
+const int tsmcModeBTN = -1;//TSマスコン互換モードを選択できるようにする場合は、スイッチを接続したピン番号を入力してください。
 
 
 //ここから下は手を触れないでください。
+const short rept = 100;//計測回数
 float sikiFN = 0;
 float sikiNR = 0;
 float where = 0;
@@ -27,6 +31,8 @@ float masal = 0;
 float brkal = 0;
 float btnari = 0;
 float btnhis[btnum];
+int btDigi = 0;
+short btfori;
 void setup() {
   for (int i = 0; i < btnum; i++) {
     btnhis[i] = 0;
@@ -50,21 +56,15 @@ void loop() {
 
 void buttoncom() {
   for (int i = 0; i < btnum; i++) {
-    if (digitalRead(button[i]) != btnhis[i]) {
-      if (digitalRead(button[i]) == HIGH) {
-        btnhis[i] = digitalRead(button[i]);
-        i = i + 1;
-        Serial.print("TOK");
-        Serial.print(i);
-        Serial.print("D\r");
-        i = i - 1;
+    //time cost = btnum * 5(microsec)
+    btDigi = digitalRead(button[i]);
+    if (btDigi != btnhis[i]) {
+      btfori = i + 1;
+        btnhis[i] = btDigi;
+      if (btDigi == HIGH) {
+        Serial.print("TOK" + String(btfori) + "D\r");
       } else {
-        btnhis[i] = digitalRead(button[i]);
-        i = i + 1;
-        Serial.print("TOK");
-        Serial.print(i);
-        Serial.print("U\r");
-        i = i - 1;
+        Serial.print("TOK" + String(btfori) + "U\r");
       }
     }
   }
@@ -72,8 +72,8 @@ void buttoncom() {
 
 void masconhand() {
   //masal
-  float a = 0;
-  float b = 0;
+  double a = 0;
+  double b = 0;
 
   //brakecommand
   for (int i = 0; i <= brnum; i++) {
@@ -132,34 +132,106 @@ brout:
     }
   }
 out:
-  delay(5);
+  delay(3);
 }
 void brcom(int command) {
   if (wh != command) {
-    Serial.print("TOB");
-    Serial.print(command);
-    Serial.print("\r");
+     if(tsmcModeBTN >= 0 && digitalRead(tsmcModeBTN) == HIGH){
+      switch(command) {
+        case 0:
+          Serial.print("\r");
+          break;
+        case 1:
+          Serial.print("\r");
+          break;
+        case 2:
+          Serial.print("\r");
+          break;
+        case 3:
+          Serial.print("\r");
+          break;
+        case 4:
+          Serial.print("\r");
+          break;
+        case 5:
+          Serial.print("\r");
+          break;
+        case 6:
+          Serial.print("\r");
+          break;
+        case 7:
+          Serial.print("\r");
+          break;
+        case 8:
+          Serial.print("\r");
+          break;
+        case 9:
+          Serial.print("\r");
+          break;
+        default:
+          Serial.print("\r");
+          break;
+      }
+    }else {
+      Serial.print("TOB" + String(command) + "\r");
+    }
     wh = command;
   }
 }
 void nocom(int command) {
   if (wh2 != command) {
-    Serial.print("TOP");
-    Serial.print(command);
-    Serial.print("\r");
+    if(tsmcModeBTN >= 0 && digitalRead(tsmcModeBTN) == HIGH){
+      switch(command) {
+        case 0:
+          Serial.print("\r");
+          break;
+        case 1:
+          Serial.print("\r");
+          break;
+        case 2:
+          Serial.print("\r");
+          break;
+        case 3:
+          Serial.print("\r");
+          break;
+        case 4:
+          Serial.print("\r");
+          break;
+        case 5:
+          Serial.print("\r");
+          break;
+        default:
+          Serial.print("\r");
+          break;
+      }
+    }else {
+      Serial.print("TOP" + String(command) + "\r");
+    }
     wh2 = command;
   }
 
 }
 void reverser() {
   if (reval > sikiFN && rev != 2) {
-    Serial.print("TORF\r");
+    if(tsmcModeBTN >= 0 && digitalRead(tsmcModeBTN) == HIGH) {
+      Serial.print("\r");
+    }else {
+      Serial.print("TORF\r");
+    }
     rev = 2;
   } else if (reval < sikiNR && rev != 1) {
-    Serial.print("TORB\r");
+    if(tsmcModeBTN >= 0 && digitalRead(tsmcModeBTN) == HIGH) {
+      Serial.print("\r");
+    }else {
+      Serial.print("TORB\r");
+    }
     rev = 1;
   } else if (reval > sikiNR && reval < sikiFN && rev != 0) {
-    Serial.print("TORN\r");
+    if(tsmcModeBTN >= 0 && digitalRead(tsmcModeBTN) == HIGH) {
+      Serial.print("\r");
+    }else {
+      Serial.print("TORN\r");
+    }
     rev = 0;
   }
 }
@@ -167,13 +239,14 @@ void ave() {
   reval = 0;
   masal = 0;
   brkal = 0;
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < rept; i++) {
     reval = reval + analogRead(rever);
     masal = masal + analogRead(mascon);
     brkal = brkal + analogRead(brakevr);
+    //time cost = 300 micro sec.
   }
-  reval = reval / 100;
-  masal = masal / 100;
-  brkal = brkal / 100;
+  reval = reval / rept;
+  masal = masal / rept;
+  brkal = brkal / rept;
 }
 
