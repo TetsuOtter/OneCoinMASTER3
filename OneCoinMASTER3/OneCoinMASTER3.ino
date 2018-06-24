@@ -2,7 +2,8 @@
 //Tech Otter(https://technotter.com)
 //Tetsu Otter(https://twitter.com/tetsu_otter)
 //ver3での変更点=>若干高速化(?)/TSマスコン互換モード搭載
-//#include "arduino.h"
+#include "arduino.h"
+#include "math.h"
 const int rever = A1; //"A1"にレバーサー可変抵抗を接続したピンを入力してください。
 const int mascon = A2; //"A2"にノッチ可変抵抗を接続したピンを入力してください。1ハンドルの場合は下と同じピンを指定してください。
 const int brakevr = A2;//"A2"にブレーキ可変抵抗を接続したピンを入力してください。1ハンドルの場合は上と同じピンを指定してください。
@@ -62,9 +63,43 @@ void buttoncom() {
       btfori = i + 1;
         btnhis[i] = btDigi;
       if (btDigi == HIGH) {
-        Serial.print("TOK" + String(btfori) + "D\r");
+        if(tsmcModeBTN >= 0 && digitalRead(abs(tsmcModeBTN)) == HIGH) {
+          switch(btDigi){
+            case 1:
+              Serial.print("TSK99\r");//S
+              break;
+            case 2:
+              Serial.print("TSX99\r");//A
+              break;
+            case 3:
+              Serial.print("TSY99\r");//B
+              break;
+            case 4:
+              Serial.print("TSZ99\r");//C
+              break;
+          }
+        }else {
+          Serial.print("TOK" + String(btfori) + "D\r");
+        }
       } else {
-        Serial.print("TOK" + String(btfori) + "U\r");
+        if(tsmcModeBTN >= 0 && digitalRead(abs(tsmcModeBTN)) == HIGH) {
+          switch(btDigi){
+            case 1:
+              Serial.print("TSK00\r");//S
+              break;
+            case 2:
+              Serial.print("TSX00\r");//A
+              break;
+            case 3:
+              Serial.print("TSY00\r");//B
+              break;
+            case 4:
+              Serial.print("TSZ00\r");//C
+              break;
+          }
+        }else {
+          Serial.print("TOK" + String(btfori) + "U\r");
+        }
       }
     }
   }
@@ -136,40 +171,40 @@ out:
 }
 void brcom(int command) {
   if (wh != command) {
-     if(tsmcModeBTN >= 0 && digitalRead(tsmcModeBTN) == HIGH){
+     if(tsmcModeBTN >= 0 && digitalRead(abs(tsmcModeBTN)) == HIGH){
       switch(command) {
         case 0:
-          Serial.print("\r");
+          Serial.print("TSA50\r");
           break;
         case 1:
-          Serial.print("\r");
+          Serial.print("TSA45\r");
           break;
         case 2:
-          Serial.print("\r");
+          Serial.print("TSA35\r");
           break;
         case 3:
-          Serial.print("\r");
+          Serial.print("TSA25\r");
           break;
         case 4:
-          Serial.print("\r");
+          Serial.print("TSA15\r");
           break;
         case 5:
-          Serial.print("\r");
+          Serial.print("TSA05\r");
           break;
         case 6:
-          Serial.print("\r");
+          Serial.print("TSE99\r");
           break;
         case 7:
-          Serial.print("\r");
+          Serial.print("TSB40\r");
           break;
         case 8:
-          Serial.print("\r");
+          Serial.print("TSB30\r");
           break;
         case 9:
-          Serial.print("\r");
+          Serial.print("TSB20\r");
           break;
         default:
-          Serial.print("\r");
+          Serial.print("TSB20\r");
           break;
       }
     }else {
@@ -180,28 +215,28 @@ void brcom(int command) {
 }
 void nocom(int command) {
   if (wh2 != command) {
-    if(tsmcModeBTN >= 0 && digitalRead(tsmcModeBTN) == HIGH){
+    if(tsmcModeBTN >= 0 && digitalRead(abs(tsmcModeBTN)) == HIGH){
       switch(command) {
         case 0:
-          Serial.print("\r");
+          Serial.print("TSA50\r");
           break;
         case 1:
-          Serial.print("\r");
+          Serial.print("TSA55\r");
           break;
         case 2:
-          Serial.print("\r");
+          Serial.print("TSA65\r");
           break;
         case 3:
-          Serial.print("\r");
+          Serial.print("TSA75\r");
           break;
         case 4:
-          Serial.print("\r");
+          Serial.print("TSA85\r");
           break;
         case 5:
-          Serial.print("\r");
+          Serial.print("TSA95\r");
           break;
         default:
-          Serial.print("\r");
+          Serial.print("TSA95\r");
           break;
       }
     }else {
